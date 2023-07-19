@@ -6,6 +6,8 @@ import io, PIL, cv2
 from PIL import Image
 from datetime import datetime
 
+from init import enable_api
+
 SD_DIRECTORY = r'C:\Users\PSA56\Documents\code\stable-diffusion-webui'
 OUTPUT_DIRECTORY = r'C:\Users\PSA56\Documents\code\training_image_generation\output\\'
 LOCAL_HOST_LINK = 'http://127.0.0.1:7860'
@@ -87,7 +89,7 @@ PARAMETER_JSON = {
   }
 }
 
-def launch_backend():
+def launch_backend() -> int:
     print("launching backend... 💤")
     os.chdir(SD_DIRECTORY)
     os.system('start cmd /k "webui-user --api"')
@@ -100,6 +102,7 @@ def launch_backend():
 def launch_backend_if_needed():
     port_number = int(LOCAL_HOST_LINK[-4:])
     if is_port_in_use(port_number):
+        print("Backend is already running! 💪")
         return
     else:
         launch_backend()
@@ -128,7 +131,14 @@ def get_image(img_dir = None):
     try:
         response = response.json()['images'][:-1]
     except:
+        # in case of an error print diagnostic information
+        print('Reponse:')
+        print(response)
+        print()
+        print('Reponse JSON:')
         print(response.json())
+        # throw the same error to end the program
+        response = response.json()['images'][:-1]
     for i in response:
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
         image.save(f"{OUTPUT_DIRECTORY}{re.sub('[_ :.]', '-', str(datetime.now()))}.png")
@@ -149,6 +159,6 @@ def server_is_free():
     return True
 
 if __name__ == '__main__':
+    enable_api(SD_DIRECTORY)
     launch_backend_if_needed()
-    # set_model("juggernaut_final.safetensors [88967f03f2]")
     get_image(r"C:\Users\PSA56\Desktop\furniture\reference_pictures\Screenshot 2023-07-11 122721.png")
