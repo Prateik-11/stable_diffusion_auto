@@ -10,6 +10,7 @@ from init import enable_api
 
 SD_DIRECTORY = r'C:\Users\PSA56\Documents\code\stable-diffusion-webui'
 OUTPUT_DIRECTORY = r'C:\Users\PSA56\Documents\code\training_image_generation\output\\'
+MODEL_FILE = 'juggernaut_final.safetensors'
 LOCAL_HOST_LINK = 'http://127.0.0.1:7860'
 PARAMETER_JSON = {
   "enable_hr": False,
@@ -159,6 +160,6 @@ def server_is_free():
     return True
 
 if __name__ == '__main__':
-    enable_api(SD_DIRECTORY)
+    enable_api(SD_DIRECTORY, MODEL_FILE)
     launch_backend_if_needed()
     get_image(r"C:\Users\PSA56\Desktop\furniture\reference_pictures\Screenshot 2023-07-11 122721.png")
