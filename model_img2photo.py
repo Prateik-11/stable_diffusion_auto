@@ -12,6 +12,8 @@ SD_DIRECTORY = r'C:\Users\PSA56\Documents\code\stable-diffusion-webui'
 OUTPUT_DIRECTORY = r'C:\Users\PSA56\Documents\code\training_image_generation\output\\'
 MODEL_FILE = 'juggernaut_final.safetensors'
 LOCAL_HOST_LINK = 'http://127.0.0.1:7860'
+SAVE_DEPTH_MAP = False # saves the depth map along with the output
+INPUT_IS_DEPTH_MAP = False # will use input img as it is, instead of converting it to a depth map
 PARAMETER_JSON = {
   "enable_hr": False,
   "denoising_strength": 0,
@@ -126,11 +128,18 @@ def get_image(img_dir = None):
         retval, img = cv2.imencode('.png', img)
         encoded_image = base64.b64encode(img).decode('utf-8')
         PARAMETER_JSON["alwayson_scripts"]["controlnet"]["args"][0]["input_image"] = encoded_image
-
+    if INPUT_IS_DEPTH_MAP:
+        PARAMETER_JSON["alwayson_scripts"]["controlnet"]["args"]["module"] = "none"
     print('⚒ generating image... ⚒')
     response = requests.post(f'{LOCAL_HOST_LINK}/sdapi/v1/txt2img', json=PARAMETER_JSON)
     try:
-        response = response.json()['images'][:-1]
+        if img_dir: # image given as input
+            if SAVE_DEPTH_MAP:
+                response = response.json()['images'] # keep everything
+            else:
+                response = response.json()['images'][:-1] # remove last output (depth map)
+        else: # no image given as input
+            response = response.json()['images']
     except:
         # in case of an error print diagnostic information
         print('Reponse:')
@@ -162,4 +171,6 @@ def server_is_free():
 if __name__ == '__main__':
     enable_api(SD_DIRECTORY, MODEL_FILE)
     launch_backend_if_needed()
+
+    # enter the path of the image of the model and the corresponding photo will be saved to the output directory
     get_image(r"C:\Users\PSA56\Desktop\furniture\reference_pictures\Screenshot 2023-07-11 122721.png")
